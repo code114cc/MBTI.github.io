@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MBTI Тест</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Montserrat', sans-serif;
+    background: #f9f9f9;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+  }
+  .container {
+    max-width: 720px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 50px 60px 50px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 2.8rem;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    color: #3a6ea5;
+    text-shadow: 0 0 5px #aec6df;
+  }
+  .question {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    animation: fadeInUp 0.5s ease forwards;
+    line-height: 1.5;
+  }
+  .answers {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 35px;
+  }
+  label {
+    background: #eaeaea;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #555;
+    box-shadow: 0 0 8px transparent;
+    transition: all 0.3s ease;
+    flex: 1;
+    max-width: 160px;
+  }
+  label:hover {
+    background: #d0dced;
+    box-shadow: 0 0 12px #3a6ea5;
+    color: #3a6ea5;
+  }
+  input[type="radio"] {
+    display: none;
+  }
+  input[type="radio"]:checked + label {
+    background: #3a6ea5;
+    color: #fff;
+    box-shadow: 0 0 20px #3a6ea5;
+  }
+  button {
+    background: #3a6ea5;
+    border: none;
+    padding: 15px 35px;
+    font-size: 1.2rem;
+    border-radius: 30px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 0 15px #3a6ea5;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  button:disabled {
+    background: #7a9ccf;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button:hover:not(:disabled) {
+    background: #305889;
+  }
+  .result {
+    margin-top: 40px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #3a6ea5;
+    text-shadow: 0 0 8px #aec6df;
+  }
+  .description {
+    margin-top: 25px;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #555;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 12px;
+    text-align: left;
+  }
+  .type-image {
+    margin: 30px auto 10px;
+    max-width: 160px;
+    border-radius: 16px;
+    box-shadow: 0 0 25px #3a6ea5;
+  }
+  #restart-btn {
+    margin-top: 30px;
+    background: #e74c3c;
+    color: #fff;
+    box-shadow: 0 0 15px #e74c3c;
+  }
+  #restart-btn:hover {
+    background: #c0392b;
+  }
+  /* Scrollbar for description */
+  .description::-webkit-scrollbar {
+    width: 8px;
+  }
+  .description::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 8px;
+  }
+  .description::-webkit-scrollbar-thumb {
+    background: #3a6ea5;
+    border-radius: 8px;
+  }
+  /* Animations */
+  @keyframes fadeInUp {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>MBTI Тест</h1>
+    <div id="quiz-container"></div>
+    <button id="next-btn" disabled>Следующий вопрос</button>
+    <div id="result" class="result"></div>
+    <img id="type-image" class="type-image" style="display:none;" alt="Тип личности" />
+    <div id="description" class="description"></div>
+    <button id="restart-btn" style="display:none;">Пройти снова</button>
+  </div>
+
+  <audio id="click-sound" src="data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAwAAABP..."></audio>
+
+  <script>
+    const questions = [
+      { text: "Когда у вас появляется возможность провести свободное время, вы предпочитаете посвятить его размышлениям и уединению, нежели посещению шумных компаний и больших собраний?", dim:"EI", val:"I" },
+      { text: "После продолжительного общения с большим количеством людей вы чувствуете прилив энергии и воодушевления, словно заряжаетесь от окружающей вас социальной атмосферы?", dim:"EI", val:"E" },
+      { text: "В разговоре вы склонны искать глубокий смысл и предпочитаете обсуждать философские или значимые темы, а не поверхностные бытовые вопросы?", dim:"EI", val:"I" },
+      { text: "Вы любите быть в центре внимания и легко проявляете себя на публике, наслаждаясь взаимодействием с другими людьми?", dim:"EI", val:"E" },
+      { text: "При принятии решений вы ориентируетесь на проверенные факты и конкретные детали, предпочитая практический и реалистичный подход?", dim:"SN", val:"S" },
+      { text: "Вы часто обращаете внимание на абстрактные идеи и возможности, предвидите будущие тенденции и предпочитаете размышлять о потенциальном развитии событий?", dim:"SN", val:"N" },
+      { text: "При решении проблем вы в первую очередь опираетесь на логику и объективный анализ, стараясь не принимать во внимание личные чувства?", dim:"TF", val:"T" },
+      { text: "Вы стараетесь учитывать эмоции и потребности окружающих, принимая решения, которые сохраняют гармонию и поддерживают хорошие отношения?", dim:"TF", val:"F" },
+      { text: "В вашей жизни важна структура и порядок: вы предпочитаете заранее планировать свои действия и следовать установленному расписанию?", dim:"JP", val:"J" },
+      { text: "Вы легко адаптируетесь к изменениям и предпочитаете оставлять пространство для спонтанных решений, избегая чрезмерного планирования?", dim:"JP", val:"P" },
+      { text: "В непринужденной беседе вы предпочитаете слушать и наблюдать, чем активно делиться своими мыслями, иногда чувствуя себя более комфортно в роли наблюдателя?", dim:"EI", val:"I" },
+      { text: "Ваша энергия и мотивация значительно увеличиваются после участия в активных социальных мероприятиях, вы любите быть среди людей и активно общаться?", dim:"EI", val:"E" },
+      { text: "Вы склонны сосредотачиваться на текущих практических деталях и фактах, предпочитая реальный опыт абстрактным теориям?", dim:"SN", val:"S" },
+      { text: "Вы часто ловите себя на мечтах о том, как может развиваться ваша жизнь и окружающий мир, уделяя много времени воображению и идеям?", dim:"SN", val:"N" },
+      { text: "В спорах и обсуждениях вы предпочитаете объективность и логику, даже если это может вызвать разногласия с другими?", dim:"TF", val:"T" },
+      { text: "Вы стремитесь избегать конфликтов и уделяете много внимания эмоциональному состоянию других, пытаясь сохранить дружескую атмосферу?", dim:"TF", val:"F" },
+      { text: "Вы цените стабильность и порядок в повседневной жизни, предпочитая придерживаться привычных правил и графиков?", dim:"JP", val:"J" },
+      { text: "Ваша склонность к гибкости и открытости новому проявляется в легком принятии неожиданных изменений и новых возможностей?", dim:"JP", val:"P" },
+      { text: "Вы предпочитаете обдумывать свои действия заранее, избегая спонтанных решений и неожиданностей?", dim:"JP", val:"J" },
+      { text: "Когда перед вами появляется новая идея или возможность, вы склонны экспериментировать и пробовать, не планируя всё детально?", dim:"JP", val:"P" },
+      { text: "В общении вы часто используете юмор и иронию, чтобы разрядить обстановку и сделать беседу более лёгкой и приятной?", dim:"EI", val:"E" },
+      { text: "Вы склонны быть очень критичны к себе и своим поступкам, постоянно анализируя ошибки и пытаясь стать лучше?", dim:"TF", val:"T" },
+      { text: "В ситуациях конфликта вы предпочитаете искать компромисс и поддерживать хорошие отношения, даже если это требует уступок?", dim:"TF", val:"F" },
+      { text: "Вы любите исследовать новые идеи и концепции, даже если они кажутся сложными и требуют длительного размышления?", dim:"SN", val:"N" }
+    ];
+
+    const descriptions = {
+      ISTJ: `Надежные и ответственные люди, которые ценят традиции и порядок.<br><br>
+             Склонны к практическому подходу и серьезному отношению к обязанностям.<br>
+             Часто являются опорой для окружающих и проявляют большую дисциплину.`,
+      ISFJ: `Заботливые и внимательные, ориентированы на поддержку и помощь близким.<br><br>
+             Любят порядок и стабильность, ценят традиции и семейные ценности.<br>
+             Тихие и надежные, с сильным чувством долга.`,
+      INFJ: `Интуитивные и проницательные, стремятся понять глубинный смысл и цель жизни.<br><br>
+             Глубокие и сострадательные, стремятся помогать другим и быть верными своим убеждениям.<br>
+             Часто обладают богатым внутренним миром и творческим подходом.`,
+      INTJ: `Стратеги и новаторы, склонны к аналитическому мышлению и планированию.<br><br>
+             Любят сложные задачи и долгосрочные проекты.<br>
+             Ценят независимость и интеллектуальный рост.`,
+      ISTP: `Практичные и решительные, любят решать проблемы и действовать быстро.<br><br>
+             Склонны к экспериментам и самостоятельности.<br>
+             Ценят свободу и реальные результаты.`,
+      ISFP: `Творческие и чувствительные, ценят красоту и гармонию в жизни.<br><br>
+             Склонны к эмпатии и доброте.<br>
+             Часто выражают себя через искусство и природу.`,
+      INFP: `Идеалисты и мечтатели, ищут смысл и цель в жизни.<br><br>
+             Глубокие и сострадательные.<br>
+             Стремятся помогать другим и быть верными своим убеждениям.`,
+      INTP: `Аналитики и мыслители, любят исследовать идеи и концепции.<br><br>
+             Склонны к логике и теоретическому подходу.<br>
+             Часто независимы и любознательны.`,
+      ESTP: `Энергичные и предприимчивые, любят новые впечатления и активность.<br><br>
+             Быстро принимают решения и легко адаптируются.<br>
+             Часто лидеры в социальных ситуациях.`,
+      ESFP: `Общительные, жизнерадостные и энергичные, любят быть в центре внимания.<br><br>
+             Ценят удовольствие и живут настоящим моментом.<br>
+             Часто творческие и артистичные личности.`,
+      ENFP: `Оптимистичные и вдохновляющие, любят исследовать новые возможности.<br><br>
+             Обладают большим воображением и харизмой.<br>
+             Ценят свободу и личностный рост.`,
+      ENTP: `Изобретательные и остроумные, любят дебаты и интеллектуальные вызовы.<br><br>
+             Склонны к инновациям и нестандартным решениям.<br>
+             Часто обладают предпринимательским духом.`,
+      ESTJ: `Организованные и решительные, любят контролировать ситуацию.<br><br>
+             Ценят традиции и эффективность.<br>
+             Часто берут на себя роль лидера и менеджера.`,
+      ESFJ: `Дружелюбные и заботливые, любят помогать другим и поддерживать гармонию.<br><br>
+             Ориентированы на социальные связи и традиции.<br>
+             Часто внимательны к потребностям окружающих.`,
+      ENFJ: `Вдохновляющие лидеры, умеют мотивировать и поддерживать других.<br><br>
+             Обладают эмпатией и сильными коммуникативными навыками.<br>
+             Стремятся к гармонии и развитию окружающих.`,
+      ENTJ: `Решительные и амбициозные стратеги, любят брать на себя ответственность.<br><br>
+             Ценят логику и эффективность.<br>
+             Часто достигают высоких целей и управляют командами.`
+    };
+
+    const typeImages = {
+      ISTJ: "https://upload.wikimedia.org/wikipedia/commons/3/34/MBTI_ISTJ.png",
+      ISFJ: "https://upload.wikimedia.org/wikipedia/commons/2/29/MBTI_ISFJ.png",
+      INFJ: "https://upload.wikimedia.org/wikipedia/commons/9/9b/MBTI_INFJ.png",
+      INTJ: "https://upload.wikimedia.org/wikipedia/commons/d/d3/MBTI_INTJ.png",
+      ISTP: "https://upload.wikimedia.org/wikipedia/commons/7/7e/MBTI_ISTP.png",
+      ISFP: "https://upload.wikimedia.org/wikipedia/commons/f/f9/MBTI_ISFP.png",
+      INFP: "https://upload.wikimedia.org/wikipedia/commons/5/57/MBTI_INFP.png",
+      INTP: "https://upload.wikimedia.org/wikipedia/commons/2/2f/MBTI_INTP.png",
+      ESTP: "https://upload.wikimedia.org/wikipedia/commons/f/f8/MBTI_ESTP.png",
+      ESFP: "https://upload.wikimedia.org/wikipedia/commons/4/4f/MBTI_ESFP.png",
+      ENFP: "https://upload.wikimedia.org/wikipedia/commons/4/44/MBTI_ENFP.png",
+      ENTP: "https://upload.wikimedia.org/wikipedia/commons/3/3e/MBTI_ENTP.png",
+      ESTJ: "https://upload.wikimedia.org/wikipedia/commons/e/e0/MBTI_ESTJ.png",
+      ESFJ: "https://upload.wikimedia.org/wikipedia/commons/1/19/MBTI_ESFJ.png",
+      ENFJ: "https://upload.wikimedia.org/wikipedia/commons/5/55/MBTI_ENFJ.png",
+      ENTJ: "https://upload.wikimedia.org/wikipedia/commons/0/0b/MBTI_ENTJ.png"
+    };
+
+    const quizContainer = document.getElementById('quiz-container');
+    const nextBtn = document.getElementById('next-btn');
+    const resultDiv = document.getElementById('result');
+    const descriptionDiv = document.getElementById('description');
+    const typeImage = document.getElementById('type-image');
+    const restartBtn = document.getElementById('restart-btn');
+    const clickSound = document.getElementById('click-sound');
+
+    let currentIndex = 0;
+    let answers = [];
+
+    function playClick() {
+      clickSound.currentTime = 0;
+      clickSound.play();
+    }
+
+    function showQuestion() {
+      nextBtn.disabled = true;
+      const q = questions[currentIndex];
+      quizContainer.innerHTML = `
+        <div class="question">${currentIndex + 1}. ${q.text}</div>
+        <div class="answers">
+          <input type="radio" id="ans_yes" name="answer" value="yes" />
+          <label for="ans_yes">Да</label>
+
+          <input type="radio" id="ans_neutral" name="answer" value="neutral" />
+          <label for="ans_neutral">Нейтрально</label>
+
+          <input type="radio" id="ans_no" name="answer" value="no" />
+          <label for="ans_no">Нет</label>
+        </div>
+      `;
+
+      const inputs = quizContainer.querySelectorAll('input[name="answer"]');
+      inputs.forEach(input => {
+        input.addEventListener('change', () => {
+          playClick();
+          nextBtn.disabled = false;
+        });
+      });
+    }
+
+    function calculateResult() {
+      let score = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+
+      answers.forEach((ans, idx) => {
+        const q = questions[idx];
+        let weight = 0;
+        if(ans === 'yes') weight = 2;
+        else if(ans === 'neutral') weight = 1;
+
+        if(weight > 0) {
+          score[q.val] += weight;
+        } else {
+          const opposite = { E:'I', I:'E', S:'N', N:'S', T:'F', F:'T', J:'P', P:'J' };
+          score[opposite[q.val]] += 2;
+        }
+      });
+
+      let type = '';
+      type += score.E >= score.I ? 'E' : 'I';
+      type += score.S >= score.N ? 'S' : 'N';
+      type += score.T >= score.F ? 'T' : 'F';
+      type += score.J >= score.P ? 'J' : 'P';
+
+      return type;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      const selected = quizContainer.querySelector('input[name="answer"]:checked');
+      if (!selected) return;
+      answers.push(selected.value);
+
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        quizContainer.style.display = 'none';
+        nextBtn.style.display = 'none';
+
+        const type = calculateResult();
+
+        resultDiv.innerHTML = `Ваш тип личности: <strong>${type}</strong>`;
+        descriptionDiv.innerHTML = descriptions[type] || "Описание не найдено.";
+        typeImage.src = typeImages[type] || "";
+        typeImage.style.display = 'block';
+        restartBtn.style.display = 'inline-block';
+      }
+    });
+
+    restartBtn.addEventListener('click', () => {
+      currentIndex = 0;
+      answers = [];
+      resultDiv.innerHTML = "";
+      descriptionDiv.innerHTML = "";
+      typeImage.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+      quizContainer.style.display = 'block';
+      restartBtn.style.display = 'none';
+      showQuestion();
+    });
+
+    showQuestion();
+  </script>
+</body>
+</html>
